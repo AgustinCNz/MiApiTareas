@@ -1,108 +1,86 @@
 using System.Text.Json;
+
 var builder = WebApplication.CreateBuilder(args);
 var app = builder.Build();
 
-// Cargamos la configuracion externa
-var puerto = builder.Configuration.GetValue<int>("Puerto");
-var ambiente = builder.Configuration.GetValue<string>("Ambiente");
+// Ruta del archivo JSON
+string archivo = "tareas.json";
 
-// Cambiamos el puerto desde configuracion
-app.Urls.Add($"http://localhost:{puerto}");
-
-// Mostramos el ambiente al iniciar
-Console.WriteLine($" Ambiente actrual: {ambiente}");
-
-// Iniciamos el meotodo para manejar tareas JSON
-
+// Funciones
 List<Tarea> CargarTareas()
 {
-    var json = File.ReadAllText("tareas.json");
+    if (!File.Exists(archivo)) File.WriteAllText(archivo, "[]");
+    var json = File.ReadAllText(archivo);
     return JsonSerializer.Deserialize<List<Tarea>>(json) ?? [];
 }
 
 void GuardarTareas(List<Tarea> tareas)
 {
     var json = JsonSerializer.Serialize(tareas, new JsonSerializerOptions { WriteIndented = true });
-    File.WriteAllText("tareas.json", json);
+    File.WriteAllText(archivo, json);
 }
 
-// GET: Todas las tareas
+// Endpoints
+
+// HOME
+app.MapGet("/", () => "SERVIDOR FUNCIONANDO - API DE TAREAS");
+
+// GET: todas las tareas
 app.MapGet("/tareas", () =>
 {
     var tareas = CargarTareas();
-    return Results.Json(new { status = "ok", result = tareas }, statusCode: 200);
+    return Results.Json(tareas, statusCode: 200);
 });
 
-// Get por ID con switch
-
+// GET: buscar por ID
 app.MapGet("/tareas/{id:int}", (int id) =>
 {
     var tareas = CargarTareas();
     var tarea = tareas.FirstOrDefault(t => t.Id == id);
-
-    return tarea switch{
-        null => Results.StatusCode(404),
-        _ => Results.Json(tarea)
-    };
+    return tarea is not null
+        ? Results.Json(tarea)
+        : Results.NotFound($"No se encontró tarea con ID: {id}");
 });
 
-// POST para crear tarea 
-app.MapPost("/tareas", (Tarea nuevo) => 
+// POST: agregar tarea
+app.MapPost("/tareas", (Tarea nueva) =>
 {
-    if (string.IsNullOrWhiteSpace(nuevo.Titulo))
-    return Results.Json(new { status = "error", result = "El Titulo es obligatorio." }, statusCode: 400);
+    if (string.IsNullOrWhiteSpace(nueva.Titulo))
+        return Results.BadRequest(new { error = "El título es obligatorio." }); // Código 400
 
     var tareas = CargarTareas();
-    nuevo.Id = tareas.Any() ? tareas.Max(t => t.Id) + 1 : 1;
-    tareas.Add(nuevo);
+    nueva.Id = tareas.Any() ? tareas.Max(t => t.Id) + 1 : 1;
+    tareas.Add(nueva);
     GuardarTareas(tareas);
 
-    return Results.Created($"/tareas/{nuevo.Id}", $" Se creo la tarea '{nuevo.Titulo}');");
+    return Results.Created($"/tareas/{nueva.Id}", nueva); // Código 201
 });
 
-
-// Delete por ID
+// DELETE: eliminar por ID
 app.MapDelete("/tareas/{id:int}", (int id) =>
 {
     var tareas = CargarTareas();
     var tarea = tareas.FirstOrDefault(t => t.Id == id);
-
     if (tarea is null)
-        return Results.Json( new { status = "error", result  = "Tarea no encontrada." }, statusCode: 404);
+        return Results.NotFound($"No se encontró tarea con ID: {id}");
 
-        tareas.Remove(tarea);
-        GuardarTareas(tareas);
-        return Results.Json(new { status = "ok", result = $"Tarea con ID {id} eliminada."   });
+    tareas.Remove(tarea);
+    GuardarTareas(tareas);
+    return Results.Ok($"Tarea con ID {id} eliminada correctamente");
 });
 
-// PUT: Modificar tarea completa
-app.MapPut("/tareas/{id:int}", (int id, Tarea tareaModificada) =>
+// PUT: modificar tarea
+app.MapPut("/tareas/{id:int}", (int id, Tarea modificada) =>
 {
     var tareas = CargarTareas();
     var index = tareas.FindIndex(t => t.Id == id);
-
     if (index == -1)
-        return Results.Json(new { status = "error", result = "Tarea no encontrada" }, statusCode: 404);
+        return Results.NotFound($"No se encontró tarea con ID: {id}");
 
-    tareaModificada.Id = id;
-    tareas[index] = tareaModificada;
+    modificada.Id = id;
+    tareas[index] = modificada;
     GuardarTareas(tareas);
-
-    return Results.Ok($"Tarea {id} actualizada correctamente");
-});
-
-// PATCH: Modificar campo Completada
-app.MapPatch("/tareas/{id:int}/completada", (int id, bool completada) =>
-{
-    var tareas = CargarTareas();
-    var tarea = tareas.FirstOrDefault(t => t.Id == id);
-    if (tarea is null)
-        return Results.Json(new { status = "error", result = "Tarea no encontrada" }, statusCode: 404);
-
-    tarea.Completada = completada;
-    GuardarTareas(tareas);
-
-    return Results.Ok($"Tarea {id} marcada como {(completada ? "completada" : "pendiente")}");
+    return Results.Ok($"Tarea con ID {id} actualizada");
 });
 
 app.Run();

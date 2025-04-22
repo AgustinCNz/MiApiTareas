@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("MiApiTareas")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f02a680c48b5f6dfab285c8f82b3eb0b9fb206c9")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+40409ae96cd423ab8d5b72dccae0034384069d3c")]
 [assembly: System.Reflection.AssemblyProductAttribute("MiApiTareas")]
 [assembly: System.Reflection.AssemblyTitleAttribute("MiApiTareas")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
