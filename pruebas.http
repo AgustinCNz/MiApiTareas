@@ -1,0 +1,40 @@
+### GET - Obtener todas las tareas
+GET http://localhost:5157/tareas
+Accept: application/json
+
+###
+
+### GET - Obtener tarea por ID
+GET http://localhost:5157/tareas/1
+Accept: application/json
+
+###
+
+### POST - Crear nueva tarea
+POST http://localhost:5157/tareas
+Content-Type: application/json
+
+{
+  "titulo": "Terminar API REST",
+  "completada": false,
+  "creador": "Luis Agustin"
+}
+
+###
+
+### PUT - Modificar tarea completa (ID 1)
+PUT http://localhost:5157/tareas/1
+Content-Type: application/json
+
+{
+  "id": 1,
+  "titulo": "API REST Finalizada",
+  "completada": true,
+  "creador": "Luis Agustin"
+}
+
+###
+
+### DELETE - Eliminar tarea por ID
+DELETE http://localhost:5157/tareas/1
+Accept: application/json
