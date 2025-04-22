@@ -16,7 +16,7 @@ Console.WriteLine($" Ambiente actrual: {ambiente}");
 
 List<Tarea> CargarTareas()
 {
-    var json - File.ReadAllText("taras.json");
+    var json = File.ReadAllText("tareas.json");
     return JsonSerializer.Deserialize<List<Tarea>>(json) ?? [];
 }
 
@@ -57,7 +57,7 @@ app.MapPost("/tareas", (Tarea nuevo) =>
     tareas.Add(nuevo);
     GuardarTareas(tareas);
 
-    return Results.Created($"/tareas/{nuevo.Id}", $" Se creo la tarea '{nuevo.Titulo}');")
+    return Results.Created($"/tareas/{nuevo.Id}", $" Se creo la tarea '{nuevo.Titulo}');");
 });
 
 
